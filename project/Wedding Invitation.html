@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Nayoung &amp; Dasol — We're Getting Married</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Special+Elite&family=Pinyon+Script&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css"/>
+<style>
+  html, body { margin: 0; padding: 0; background: oklch(0.22 0.025 50); min-height: 100vh; }
+  body {
+    font-family: "Cormorant Garamond", serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="data.js"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="atoms.jsx"></script>
+<script type="text/babel" src="screens/hero.jsx"></script>
+<script type="text/babel" src="screens/gallery.jsx"></script>
+<script type="text/babel" src="screens/messages.jsx"></script>
+<script type="text/babel" src="screens/lightbox.jsx"></script>
+<script type="text/babel" src="screens/auth.jsx"></script>
+<script type="text/babel" src="screens/sheets.jsx"></script>
+<script type="text/babel" src="shell.jsx"></script>
+
+<script type="text/babel" data-presets="env,react">
+function App() {
+  const PHONE_W = 390;
+  const PHONE_H = 844;
+  const FRAME_W = PHONE_W + 64;
+  const FRAME_H = PHONE_H + 80;
+
+  const Phone = ({ initial, initialTab }) => (
+    <div style={{ width: "100%", height: "100%" }}>
+      <IOSDevice width={PHONE_W} height={PHONE_H}>
+        <MobileShell initial={initial} initialTab={initialTab}/>
+      </IOSDevice>
+    </div>
+  );
+
+  const SheetPhone = ({ kind }) => (
+    <div style={{ width: "100%", height: "100%" }}>
+      <IOSDevice width={PHONE_W} height={PHONE_H}>
+        <div style={{ height: "100%", overflow: "hidden", position: "relative", display: "flex", flexDirection: "column" }}>
+          {kind === "upload" ? (
+            <Gallery photos={window.SAMPLE_PHOTOS} onUpload={() => {}} onOpenPhoto={() => {}}/>
+          ) : (
+            <Messages messages={window.SAMPLE_MESSAGES} onLeaveMessage={() => {}}/>
+          )}
+          {kind === "upload" && <UploadSheet onClose={() => {}}/>}
+          {kind === "message" && <MessageSheet onClose={() => {}}/>}
+        </div>
+      </IOSDevice>
+    </div>
+  );
+
+  return (
+    <DesignCanvas
+      title="Nayoung &amp; Dasol — We're Getting Married"
+      subtitle="모바일 청첩장 · Roman Holiday 무드"
+    >
+      <DCSection id="full-flow" title="① 사용자 플로우">
+        <DCArtboard id="auth" label="01 · 입장권 제출 (시작)" width={FRAME_W} height={FRAME_H}>
+          <Phone initial="auth"/>
+        </DCArtboard>
+        <DCArtboard id="poster" label="02 · 메인 포스터" width={FRAME_W} height={FRAME_H}>
+          <Phone initial="app" initialTab="poster"/>
+        </DCArtboard>
+        <DCArtboard id="gallery" label="03 · 갤러리" width={FRAME_W} height={FRAME_H}>
+          <Phone initial="app" initialTab="gallery"/>
+        </DCArtboard>
+        <DCArtboard id="credits" label="04 · 축하의 말 (엔딩 크레딧)" width={FRAME_W} height={FRAME_H}>
+          <Phone initial="app" initialTab="credits"/>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="sheets" title="② 인터랙션 시트">
+        <DCArtboard id="upload-sheet" label="사진 업로드" width={FRAME_W} height={FRAME_H}>
+          <SheetPhone kind="upload"/>
+        </DCArtboard>
+        <DCArtboard id="message-sheet" label="축하 메시지 작성 (크레딧 탭에서)" width={FRAME_W} height={FRAME_H}>
+          <SheetPhone kind="message"/>
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
