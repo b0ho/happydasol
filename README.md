@@ -1,25 +1,63 @@
-# CODING AGENTS: READ THIS FIRST
+# happydasol
 
-This is a **handoff bundle** from Claude Design (claude.ai/design).
+김다솔 × 이나영의 결혼을 축하하는 모바일 청첩장.  
+친구/가족이 결혼하는 사람을 위해 만드는 헌정 페이지로, 축하 메시지와 사진을 함께 남길 수 있습니다.
 
-A user mocked up designs in HTML/CSS/JS using an AI design tool, then exported this bundle so a coding agent can implement the designs for real.
+## 구조
 
-## What you should do — IMPORTANT
+```
+happydasol/
+├── index.html          # 청첩장 (React + Babel CDN, 단일 파일)
+├── server.js           # Express 백엔드
+├── assets/
+│   └── bgm.mp3         # 배경음악
+├── project/            # 디자인 원본 (로컬 전용)
+│   ├── assets/
+│   │   └── hero-couple.jpeg
+│   └── ...
+└── docs/
+    └── chat1.md        # 기획 대화 기록
+```
 
-**Read the chat transcripts first.** There are 1 chat transcript(s) in `chats/`. The transcripts show the full back-and-forth between the user and the design assistant — they tell you **what the user actually wants** and **where they landed** after iterating. Don't skip them. The final HTML files are the output, but the chat is where the intent lives.
+런타임 생성 (git 제외):
+- `wedding.db` — SQLite (로컬) / `/data/wedding.db` (운영)
+- `uploads/` — 업로드 사진 (로컬) / `/data/uploads/` (운영)
 
-**Read `project/Wedding Invitation.html` in full.** The user had this file open when they triggered the handoff, so it's almost certainly the primary design they want built. Read it top to bottom — don't skim. Then **follow its imports**: open every file it pulls in (shared components, CSS, scripts) so you understand how the pieces fit together before you start implementing.
+## 로컬 실행
 
-**If anything is ambiguous, ask the user to confirm before you start implementing.** It's much cheaper to clarify scope up front than to build the wrong thing.
+```bash
+npm install
+node server.js
+# http://localhost:3000
+```
 
-## About the design files
+## 배포
 
-The design medium is **HTML/CSS/JS** — these are prototypes, not production code. Your job is to **recreate them pixel-perfectly** in whatever technology makes sense for the target codebase (React, Vue, native, whatever fits). Match the visual output; don't copy the prototype's internal structure unless it happens to fit.
+Railway에 연결된 GitHub 저장소로 `main` 브랜치에 푸시하면 자동 배포됩니다.
 
-**Don't render these files in a browser or take screenshots unless the user asks you to.** Everything you need — dimensions, colors, layout rules — is spelled out in the source. Read the HTML and CSS directly; a screenshot won't tell you anything they don't.
+운영 URL: `https://happydasol-production.up.railway.app`
 
-## Bundle contents
+Railway 환경변수:
+- `DATA_DIR=/data` — 볼륨 마운트 경로 (데이터 영속성)
+- `ADMIN_TOKEN` — 관리자 API 인증 토큰
 
-- `README.md` — this file
-- `chats/` — conversation transcripts (read these!)
-- `project/` — the `happydasol` project files (HTML prototypes, assets, components)
+## 기능
+
+- 히어로 포스터 + 배경음악 자동재생
+- 축하 메시지 작성 및 목록 보기
+- 사진 업로드 및 갤러리 (장당 5MB, 1인 30장 제한)
+- IP 기반 rate limiting
+
+## 관리자 API
+
+모든 요청에 `x-admin-token: <ADMIN_TOKEN>` 헤더 필요.
+
+```
+GET    /api/admin/messages        # 메시지 전체 조회
+PATCH  /api/admin/messages/:id    # 메시지 수정 { nickname?, text? }
+DELETE /api/admin/messages/:id    # 메시지 삭제
+
+GET    /api/admin/photos          # 사진 전체 조회
+PATCH  /api/admin/photos/:id      # 사진 수정 { caption?, nickname? }
+DELETE /api/admin/photos/:id      # 사진 삭제 (파일도 함께 제거)
+```
