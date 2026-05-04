@@ -488,7 +488,7 @@ function MessageSheet({ onClose, nickname, onSuccess }) {
 
         <div style={{marginTop:16,padding:"16px",background:"var(--paper-2)",border:"1px solid var(--rule)"}}>
           <div className="font-mono tracked-tight" style={{fontSize:9,color:"var(--ink-mute)",marginBottom:4}}>NICKNAME</div>
-          <input value={nick} onChange={e=>setNick(e.target.value)} placeholder="sky" style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",borderBottom:"1px solid var(--ink-mute)",padding:"4px 0",fontFamily:'"Cormorant Garamond",serif',fontSize:17,color:"var(--ink)",outline:"none"}}/>
+          <input value={nick} onChange={e=>setNick(e.target.value)} placeholder="invitado" style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",borderBottom:"1px solid var(--ink-mute)",padding:"4px 0",fontFamily:'"Cormorant Garamond",serif',fontSize:17,color:"var(--ink)",outline:"none"}}/>
 
           <div className="font-mono tracked-tight" style={{fontSize:9,color:"var(--ink-mute)",marginBottom:4,marginTop:14}}>MESSAGE</div>
           <textarea value={text} onChange={e=>setText(e.target.value.slice(0,max))} rows={5} placeholder="Write something for Nayoung & Dasol..." style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",fontFamily:'"Cormorant Garamond",serif',fontStyle:"italic",fontSize:15,lineHeight:1.5,color:"var(--ink)",outline:"none",resize:"none"}}/>
