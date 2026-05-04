@@ -8,12 +8,14 @@ const fs   = require("fs");
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
+const DATA_DIR = process.env.DATA_DIR || ".";
+const UPLOADS_DIR = path.join(DATA_DIR, "uploads");
 
 // ── Storage dirs ─────────────────────────────────────────────
-fs.mkdirSync("uploads", { recursive: true });
+fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 // ── Database ─────────────────────────────────────────────────
-const db = new Database("wedding.db");
+const db = new Database(path.join(DATA_DIR, "wedding.db"));
 db.exec(`
   CREATE TABLE IF NOT EXISTS messages (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,7 +54,7 @@ if (db.prepare("SELECT COUNT(*) as n FROM messages").get().n === 0) {
 
 // ── Multer ───────────────────────────────────────────────────
 const storage = multer.diskStorage({
-  destination: "uploads/",
+  destination: UPLOADS_DIR,
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase() || ".jpg";
     cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
@@ -103,7 +105,7 @@ app.get(["/", "/Wedding%20Invitation.html", "/Wedding Invitation.html"], (_req, 
   res.sendFile(HTML_FILE);
 });
 app.use("/project/assets", express.static("project/assets")); // 히어로 이미지 등
-app.use("/uploads", express.static("uploads"));               // 업로드된 사진
+app.use("/uploads", express.static(UPLOADS_DIR));             // 업로드된 사진
 app.get("/music/bgm.mp3", (_req, res) => {
   res.sendFile(path.resolve(__dirname, "Consejo Nupcial.mp3"));
 });
