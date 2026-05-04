@@ -71,9 +71,6 @@ html, body {
 
 .sepia-photo { filter: sepia(0.55) saturate(0.85) contrast(1.05) brightness(0.96); }
 
-@keyframes creditRoll { 0% { transform: translateY(0); } 100% { transform: translateY(-100%); } }
-.credits-roll { animation: creditRoll 60s linear infinite; }
-.credits-roll.paused { animation-play-state: paused; }
 .credit-msg { transition: opacity 0.4s ease, transform 0.4s ease; }
 .credit-msg.dim { opacity: 0.18; }
 .credit-msg.highlight { opacity: 1; transform: scale(1.06); }
@@ -307,10 +304,50 @@ function Lightbox({ photos, index, onClose, onPrev, onNext }) {
 
 // ─── Messages ─────────────────────────────────────────────────
 function Messages({ messages, onLeaveMessage }) {
-  const [paused, setPaused] = React.useState(false);
+  const [paused, setPaused]     = React.useState(false);
   const [highlight, setHighlight] = React.useState(null);
-  const [fast, setFast] = React.useState(false);
-  const [rollKey, setRollKey] = React.useState(0);
+  const [fast, setFast]         = React.useState(false);
+  const [rollKey, setRollKey]   = React.useState(0);
+  const containerRef = React.useRef();
+  const rollRef      = React.useRef();
+  const posRef       = React.useRef(null);
+  const rafRef       = React.useRef();
+  const stateRef     = React.useRef({ paused: false, fast: false, highlight: null });
+
+  React.useEffect(() => { stateRef.current = { paused, fast, highlight }; }, [paused, fast, highlight]);
+
+  React.useEffect(() => {
+    const container = containerRef.current;
+    const roll = rollRef.current;
+    if (!container || !roll || messages.length === 0) return;
+
+    const containerH = container.clientHeight;
+    const singleH    = roll.scrollHeight / 2;
+
+    if (posRef.current === null) posRef.current = containerH / 2;
+
+    let lastTs = null;
+    const tick = ts => {
+      const { paused, fast, highlight } = stateRef.current;
+      const shouldMove = !paused && highlight === null;
+      if (shouldMove) {
+        if (lastTs !== null) {
+          const speed = (singleH / (fast ? 15 : 60));
+          posRef.current -= speed * ((ts - lastTs) / 1000);
+          if (posRef.current < (containerH / 2) - singleH) posRef.current += singleH;
+          roll.style.transform = `translateY(${posRef.current}px)`;
+        }
+        lastTs = ts;
+      } else {
+        lastTs = null;
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    roll.style.transform = `translateY(${posRef.current}px)`;
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [messages, rollKey]);
 
   const tap = (i, e) => {
     e.stopPropagation();
@@ -322,24 +359,17 @@ function Messages({ messages, onLeaveMessage }) {
     e.stopPropagation();
     setHighlight(null);
     setPaused(false);
+    posRef.current = null;
     setRollKey(k => k + 1);
   };
 
-  const toggleFast = e => {
-    e.stopPropagation();
-    setFast(f => !f);
-  };
-
-  const btnStyle = active => ({
-    fontFamily:'"Special Elite",monospace',
-    fontSize:9,
-    letterSpacing:"0.18em",
-    textTransform:"uppercase",
-    padding:"6px 12px",
-    background: active ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.08)",
-    color:"var(--paper)",
-    border:"1px solid rgba(255,255,255,0.3)",
-    cursor:"pointer",
+  const iconBtn = active => ({
+    width:36, height:36, borderRadius:"50%",
+    background: active ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.1)",
+    border:"1px solid rgba(255,255,255,0.35)",
+    color:"var(--paper)", cursor:"pointer",
+    display:"flex", alignItems:"center", justifyContent:"center",
+    fontSize:14,
   });
 
   return (
@@ -349,23 +379,23 @@ function Messages({ messages, onLeaveMessage }) {
         <div style={{fontStyle:"italic",textAlign:"center",fontSize:13,color:"rgba(255,255,255,0.55)",marginTop:4}}>— Con todo nuestro agradecimiento —</div>
       </div>
 
-      <div style={{flex:1,position:"relative",overflow:"hidden",maskImage:"linear-gradient(180deg, transparent 0%, #000 12%, #000 88%, transparent 100%)",WebkitMaskImage:"linear-gradient(180deg, transparent 0%, #000 12%, #000 88%, transparent 100%)"}} onClick={() => { if (highlight!==null){setHighlight(null);setPaused(false);}else setPaused(p=>!p); }}>
+      <div ref={containerRef} style={{flex:1,position:"relative",overflow:"hidden",maskImage:"linear-gradient(180deg, transparent 0%, #000 12%, #000 88%, transparent 100%)",WebkitMaskImage:"linear-gradient(180deg, transparent 0%, #000 12%, #000 88%, transparent 100%)"}} onClick={() => { if (highlight!==null){setHighlight(null);setPaused(false);}else setPaused(p=>!p); }}>
         {messages.length === 0 ? (
           <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
             <div style={{fontStyle:"italic",fontSize:16,color:"rgba(255,255,255,0.4)",textAlign:"center"}}>아직 메시지가 없어요<br/>첫 번째 축하 메시지를 남겨주세요</div>
           </div>
         ) : (
-          <div key={rollKey} className={`credits-roll${paused?" paused":""}`} style={{position:"absolute",left:0,right:0,padding:"0 26px",textAlign:"center",animationDuration:fast?"15s":"60s"}}>
-            {messages.map((m, i) => {
-              const cls = highlight===null?"":highlight===i?"highlight":"dim";
+          <div ref={rollRef} key={rollKey} style={{position:"absolute",left:0,right:0,padding:"0 26px",textAlign:"center",willChange:"transform"}}>
+            {[...messages, ...messages].map((m, i) => {
+              const orig = i % messages.length;
+              const cls  = highlight===null?"":highlight===orig?"highlight":"dim";
               return (
-                <div key={m.id??i} className={`credit-msg ${cls}`} onClick={e=>tap(i,e)} style={{marginBottom:38,cursor:"pointer"}}>
+                <div key={i} className={`credit-msg ${cls}`} onClick={e=>tap(orig,e)} style={{marginBottom:38,cursor:"pointer"}}>
                   <div className="font-display" style={{fontSize:19,lineHeight:1.1,color:"var(--gold)",marginBottom:10}}>{m.nickname}</div>
                   <div style={{fontStyle:"italic",fontSize:14,lineHeight:1.55,color:"rgba(255,255,255,0.85)"}}>"{m.text}"</div>
                 </div>
               );
             })}
-            <div style={{marginBottom:38}}><div className="font-display" style={{fontSize:22,color:"var(--gold)"}}>FIN</div></div>
           </div>
         )}
         {(paused||highlight!==null) && (
@@ -373,13 +403,13 @@ function Messages({ messages, onLeaveMessage }) {
             {highlight!==null?"FOCUS":"PAUSED"}
           </div>
         )}
+        <div style={{position:"absolute",bottom:16,right:16,display:"flex",flexDirection:"column",gap:8,zIndex:6}} onClick={e=>e.stopPropagation()}>
+          <button onClick={e=>{e.stopPropagation();setFast(f=>!f);}} style={iconBtn(fast)} title="빨리감기">▶▶</button>
+          <button onClick={replay} style={iconBtn(false)} title="처음부터">↺</button>
+        </div>
       </div>
 
-      <div style={{padding:"10px 18px 4px",background:"linear-gradient(0deg, var(--ink) 70%, transparent)",position:"relative",zIndex:5,display:"flex",gap:8,justifyContent:"center"}}>
-        <button onClick={replay} style={btnStyle(false)}>↺ &nbsp;처음부터</button>
-        <button onClick={toggleFast} style={btnStyle(fast)}>▶▶ &nbsp;빨리감기{fast?" ON":" OFF"}</button>
-      </div>
-      <div style={{padding:"10px 18px 24px",background:"var(--ink)",position:"relative",zIndex:5}}>
+      <div style={{padding:"14px 18px 24px",background:"linear-gradient(0deg, var(--ink) 70%, transparent)",position:"relative",zIndex:5}}>
         <button onClick={onLeaveMessage} style={{width:"100%",fontFamily:'"Special Elite",monospace',fontSize:11,letterSpacing:"0.24em",textTransform:"uppercase",padding:"14px 18px",background:"var(--gold)",color:"var(--ink)",border:"none",cursor:"pointer"}}>
           ✎ &nbsp; LEAVE A MESSAGE
         </button>
