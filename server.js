@@ -183,6 +183,10 @@ app.post("/api/photos", writeLimiter, (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`\n🎬  http://localhost:${PORT}\n`);
+});
+
+process.on("SIGTERM", () => {
+  server.close(() => { db.close(); process.exit(0); });
 });
