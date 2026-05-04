@@ -11,10 +11,8 @@ const PORT = process.env.PORT || 3000;
 const DATA_DIR = process.env.DATA_DIR || ".";
 const UPLOADS_DIR = path.join(DATA_DIR, "uploads");
 
-// ── Storage dirs ─────────────────────────────────────────────
 fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
-// ── Database ─────────────────────────────────────────────────
 const db = new Database(path.join(DATA_DIR, "wedding.db"));
 db.exec(`
   CREATE TABLE IF NOT EXISTS messages (
@@ -34,7 +32,6 @@ db.exec(`
 `);
 try { db.prepare("ALTER TABLE photos ADD COLUMN ip TEXT DEFAULT ''").run(); } catch(_) {}
 
-// Seed sample messages once
 if (db.prepare("SELECT COUNT(*) as n FROM messages").get().n === 0) {
   const ins = db.prepare("INSERT INTO messages (nickname, text) VALUES (?, ?)");
   [
@@ -52,7 +49,6 @@ if (db.prepare("SELECT COUNT(*) as n FROM messages").get().n === 0) {
   ].forEach(([nick, text]) => ins.run(nick, text));
 }
 
-// ── Multer ───────────────────────────────────────────────────
 const storage = multer.diskStorage({
   destination: UPLOADS_DIR,
   filename: (_req, file, cb) => {
@@ -70,15 +66,9 @@ const upload = multer({
   },
 });
 
-// ── Security ──────────────────────────────────────────────────
-app.use(helmet({
-  contentSecurityPolicy: false, // inline script (React/Babel CDN) 허용
-}));
-
-// x-forwarded-for 신뢰 (ngrok / 리버스 프록시 경유 시 실제 IP 읽기)
+app.use(helmet({ contentSecurityPolicy: false }));
 app.set("trust proxy", 1);
 
-// 전체 요청: IP당 15분에 300회
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 300,
@@ -87,7 +77,6 @@ const globalLimiter = rateLimit({
   message: { error: "Too many requests. Please try again later." },
 });
 
-// 메시지·사진 POST: IP당 15분에 20회
 const writeLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
@@ -98,23 +87,17 @@ const writeLimiter = rateLimit({
 
 app.use(globalLimiter);
 
-// ── Static files ──────────────────────────────────────────────
 const HTML_FILE = path.resolve(__dirname, "index.html");
 app.get(["/", "/wedding"], (_req, res) => res.sendFile(HTML_FILE));
-app.use("/project/assets", express.static("project/assets")); // 히어로 이미지 등
-app.use("/uploads", express.static(UPLOADS_DIR));             // 업로드된 사진
-app.get("/music/bgm.mp3", (_req, res) => {
-  res.sendFile(path.resolve(__dirname, "assets/bgm.mp3"));
-});
+app.use("/project/assets", express.static("project/assets"));
+app.use("/uploads", express.static(UPLOADS_DIR));
+app.get("/music/bgm.mp3", (_req, res) => res.sendFile(path.resolve(__dirname, "assets/bgm.mp3")));
 app.get("/favicon.ico", (_req, res) => res.status(204).end());
 
-// ── Middleware ────────────────────────────────────────────────
 app.use(express.json({ limit: "10kb" }));
 
-// ── API: Messages ─────────────────────────────────────────────
 app.get("/api/messages", (_req, res) => {
-  const rows = db.prepare("SELECT * FROM messages ORDER BY created_at ASC").all();
-  res.json(rows);
+  res.json(db.prepare("SELECT * FROM messages ORDER BY created_at ASC").all());
 });
 
 app.post("/api/messages", writeLimiter, (req, res) => {
@@ -130,7 +113,6 @@ app.post("/api/messages", writeLimiter, (req, res) => {
   res.json(db.prepare("SELECT * FROM messages WHERE id = ?").get(r.lastInsertRowid));
 });
 
-// ── API: Photos ───────────────────────────────────────────────
 app.get("/api/photos", (_req, res) => {
   const rows = db.prepare("SELECT * FROM photos ORDER BY created_at ASC").all();
   res.json(rows.map(p => ({ ...p, url: `/uploads/${p.filename}`, by: p.nickname })));
@@ -149,7 +131,6 @@ app.post("/api/photos", writeLimiter, (req, res) => {
     const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
     const { caption = "" } = req.body ?? {};
 
-    // IP당 누적 30장 제한
     const count = db.prepare("SELECT COUNT(*) as n FROM photos WHERE ip = ?").get(ip).n;
     if (count >= 30) {
       fs.unlinkSync(req.file.path);
@@ -164,8 +145,6 @@ app.post("/api/photos", writeLimiter, (req, res) => {
   });
 });
 
-// ── Start ─────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`\n🎬  Wedding Invitation server`);
-  console.log(`    http://localhost:${PORT}/wedding\n`);
+  console.log(`\n🎬  http://localhost:${PORT}\n`);
 });
