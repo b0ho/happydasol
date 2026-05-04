@@ -100,8 +100,7 @@ app.use(globalLimiter);
 
 // ── Static files ──────────────────────────────────────────────
 const HTML_FILE = path.resolve(__dirname, "index.html");
-app.get("/", (_req, res) => res.redirect("/wedding"));
-app.get("/wedding", (_req, res) => res.sendFile(HTML_FILE));
+app.get(["/", "/wedding"], (_req, res) => res.sendFile(HTML_FILE));
 app.use("/project/assets", express.static("project/assets")); // 히어로 이미지 등
 app.use("/uploads", express.static(UPLOADS_DIR));             // 업로드된 사진
 app.get("/music/bgm.mp3", (_req, res) => {
