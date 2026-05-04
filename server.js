@@ -99,11 +99,9 @@ const writeLimiter = rateLimit({
 app.use(globalLimiter);
 
 // ── Static files ──────────────────────────────────────────────
-// wedding.db, server.js 등 민감 파일 노출 방지 — 허용 경로만 명시
-const HTML_FILE = path.resolve(__dirname, "Wedding Invitation.html");
-app.get(["/", "/Wedding%20Invitation.html", "/Wedding Invitation.html"], (_req, res) => {
-  res.sendFile(HTML_FILE);
-});
+const HTML_FILE = path.resolve(__dirname, "screens/wedding.html");
+app.get("/", (_req, res) => res.redirect("/wedding"));
+app.get("/wedding", (_req, res) => res.sendFile(HTML_FILE));
 app.use("/project/assets", express.static("project/assets")); // 히어로 이미지 등
 app.use("/uploads", express.static(UPLOADS_DIR));             // 업로드된 사진
 app.get("/music/bgm.mp3", (_req, res) => {
@@ -170,5 +168,5 @@ app.post("/api/photos", writeLimiter, (req, res) => {
 // ── Start ─────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`\n🎬  Wedding Invitation server`);
-  console.log(`    http://localhost:${PORT}/Wedding%20Invitation.html\n`);
+  console.log(`    http://localhost:${PORT}/wedding\n`);
 });
