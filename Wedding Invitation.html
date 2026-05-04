@@ -106,6 +106,7 @@ html, body {
 <script type="text/babel" data-presets="env,react">
 
 const HERO_URL = "project/assets/hero-couple.jpeg";
+const BGM_URL  = "/music/bgm.mp3";
 
 // ─── Utils ───────────────────────────────────────────────────
 function getDDay() {
@@ -541,6 +542,31 @@ function App() {
   const [lightboxIdx, setLightboxIdx] = React.useState(null);
   const [photos, setPhotos]         = React.useState([]);
   const [messages, setMessages]     = React.useState([]);
+  const audioRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const audio = new Audio(BGM_URL);
+    audio.loop = true;
+    audio.volume = 0.45;
+    audio.muted = true;
+    audioRef.current = audio;
+
+    const tryPlay = () => { audio.play().catch(() => {}); };
+    document.addEventListener("click", tryPlay, { once: true });
+    document.addEventListener("touchstart", tryPlay, { once: true });
+
+    return () => {
+      audio.pause();
+      document.removeEventListener("click", tryPlay);
+      document.removeEventListener("touchstart", tryPlay);
+    };
+  }, []);
+
+  React.useEffect(() => {
+    if (!audioRef.current) return;
+    audioRef.current.muted = muted;
+    if (!muted) audioRef.current.play().catch(() => {});
+  }, [muted]);
 
   const fetchAll = React.useCallback(async () => {
     try {

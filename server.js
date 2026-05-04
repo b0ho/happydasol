@@ -104,6 +104,9 @@ app.get(["/", "/Wedding%20Invitation.html", "/Wedding Invitation.html"], (_req, 
 });
 app.use("/project/assets", express.static("project/assets")); // 히어로 이미지 등
 app.use("/uploads", express.static("uploads"));               // 업로드된 사진
+app.get("/music/bgm.mp3", (_req, res) => {
+  res.sendFile(path.resolve(__dirname, "Consejo Nupcial.mp3"));
+});
 
 // ── Middleware ────────────────────────────────────────────────
 app.use(express.json({ limit: "10kb" }));
