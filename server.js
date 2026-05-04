@@ -1,6 +1,8 @@
 const express = require("express");
 const multer  = require("multer");
 const Database = require("better-sqlite3");
+const rateLimit = require("express-rate-limit");
+const helmet = require("helmet");
 const path = require("path");
 const fs   = require("fs");
 
@@ -23,10 +25,12 @@ db.exec(`
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     filename   TEXT NOT NULL,
     caption    TEXT DEFAULT '',
-    nickname   TEXT NOT NULL,
+    nickname   TEXT NOT NULL DEFAULT 'guest',
+    ip         TEXT DEFAULT '',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);
+try { db.prepare("ALTER TABLE photos ADD COLUMN ip TEXT DEFAULT ''").run(); } catch(_) {}
 
 // Seed sample messages once
 if (db.prepare("SELECT COUNT(*) as n FROM messages").get().n === 0) {
@@ -57,17 +61,52 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     const ok = /^image\/(jpeg|png|webp|heic|heif)$/.test(file.mimetype);
     cb(ok ? null : new Error("이미지 파일만 업로드할 수 있습니다."), ok);
   },
 });
 
+// ── Security ──────────────────────────────────────────────────
+app.use(helmet({
+  contentSecurityPolicy: false, // inline script (React/Babel CDN) 허용
+}));
+
+// x-forwarded-for 신뢰 (ngrok / 리버스 프록시 경유 시 실제 IP 읽기)
+app.set("trust proxy", 1);
+
+// 전체 요청: IP당 15분에 300회
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests. Please try again later." },
+});
+
+// 메시지·사진 POST: IP당 15분에 20회
+const writeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many submissions. Please try again later." },
+});
+
+app.use(globalLimiter);
+
+// ── Static files ──────────────────────────────────────────────
+// wedding.db, server.js 등 민감 파일 노출 방지 — 허용 경로만 명시
+const HTML_FILE = path.resolve(__dirname, "Wedding Invitation.html");
+app.get(["/", "/Wedding%20Invitation.html", "/Wedding Invitation.html"], (_req, res) => {
+  res.sendFile(HTML_FILE);
+});
+app.use("/project/assets", express.static("project/assets")); // 히어로 이미지 등
+app.use("/uploads", express.static("uploads"));               // 업로드된 사진
+
 // ── Middleware ────────────────────────────────────────────────
-app.use(express.json());
-app.use(express.static("."));          // serves Wedding Invitation.html + project/
-app.use("/uploads", express.static("uploads"));
+app.use(express.json({ limit: "10kb" }));
 
 // ── API: Messages ─────────────────────────────────────────────
 app.get("/api/messages", (_req, res) => {
@@ -75,12 +114,14 @@ app.get("/api/messages", (_req, res) => {
   res.json(rows);
 });
 
-app.post("/api/messages", (req, res) => {
+app.post("/api/messages", writeLimiter, (req, res) => {
   const { nickname, text } = req.body ?? {};
   if (!nickname?.trim() || !text?.trim())
-    return res.status(400).json({ error: "닉네임과 메시지를 입력해주세요." });
-  if (text.length > 240)
-    return res.status(400).json({ error: "메시지는 240자 이내로 작성해주세요." });
+    return res.status(400).json({ error: "Please enter a name and message." });
+  if (nickname.length > 40)
+    return res.status(400).json({ error: "Nickname too long." });
+  if (text.length > 500)
+    return res.status(400).json({ error: "Message must be 500 characters or fewer." });
 
   const r = db.prepare("INSERT INTO messages (nickname, text) VALUES (?, ?)").run(nickname.trim(), text.trim());
   res.json(db.prepare("SELECT * FROM messages WHERE id = ?").get(r.lastInsertRowid));
@@ -92,30 +133,28 @@ app.get("/api/photos", (_req, res) => {
   res.json(rows.map(p => ({ ...p, url: `/uploads/${p.filename}`, by: p.nickname })));
 });
 
-app.post("/api/photos", (req, res) => {
+app.post("/api/photos", writeLimiter, (req, res) => {
   upload.single("photo")(req, res, err => {
     if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE")
-      return res.status(400).json({ error: "파일 크기는 5MB 이하여야 합니다." });
+      return res.status(400).json({ error: "File must be 5MB or smaller." });
     if (err)
       return res.status(400).json({ error: err.message });
 
-    const { caption = "", nickname } = req.body ?? {};
-    if (!nickname?.trim()) {
-      if (req.file) fs.unlinkSync(req.file.path);
-      return res.status(400).json({ error: "닉네임이 필요합니다." });
-    }
     if (!req.file)
-      return res.status(400).json({ error: "사진 파일이 없습니다." });
+      return res.status(400).json({ error: "No photo file provided." });
 
-    // 30-photo limit per person
-    const count = db.prepare("SELECT COUNT(*) as n FROM photos WHERE nickname = ?").get(nickname.trim()).n;
+    const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
+    const { caption = "" } = req.body ?? {};
+
+    // IP당 누적 30장 제한
+    const count = db.prepare("SELECT COUNT(*) as n FROM photos WHERE ip = ?").get(ip).n;
     if (count >= 30) {
       fs.unlinkSync(req.file.path);
-      return res.status(429).json({ error: "1인당 최대 30장까지 업로드할 수 있습니다." });
+      return res.status(429).json({ error: "Upload limit reached (30 photos per person)." });
     }
 
-    const r = db.prepare("INSERT INTO photos (filename, caption, nickname) VALUES (?, ?, ?)").run(
-      req.file.filename, caption.trim(), nickname.trim()
+    const r = db.prepare("INSERT INTO photos (filename, caption, nickname, ip) VALUES (?, ?, 'guest', ?)").run(
+      req.file.filename, caption.trim(), ip
     );
     const photo = db.prepare("SELECT * FROM photos WHERE id = ?").get(r.lastInsertRowid);
     res.json({ ...photo, url: `/uploads/${photo.filename}`, by: photo.nickname });

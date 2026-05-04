@@ -71,7 +71,7 @@ html, body {
 
 .sepia-photo { filter: sepia(0.55) saturate(0.85) contrast(1.05) brightness(0.96); }
 
-@keyframes creditRoll { 0% { transform: translateY(100%); } 100% { transform: translateY(-100%); } }
+@keyframes creditRoll { 0% { transform: translateY(0); } 100% { transform: translateY(-100%); } }
 .credits-roll { animation: creditRoll 60s linear infinite; }
 .credits-roll.paused { animation-play-state: paused; }
 .credit-msg { transition: opacity 0.4s ease, transform 0.4s ease; }
@@ -116,7 +116,7 @@ function getDDay() {
 async function apiFetch(url, opts) {
   const res = await fetch(url, opts);
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "오류가 발생했습니다.");
+  if (!res.ok) throw new Error(data.error || "Something went wrong.");
   return data;
 }
 
@@ -175,110 +175,16 @@ function MuteButton({ muted, onToggle }) {
   );
 }
 
-// ─── Auth Screen ─────────────────────────────────────────────
-function AuthScreen({ onSignIn }) {
-  const [name, setName] = React.useState("");
-  const days = getDDay();
-
-  const submit = () => onSignIn && onSignIn((name.trim() || "anonymous"));
-
-  return (
-    <div style={{
-      height:"100%", background:"var(--paper)", color:"var(--ink)",
-      display:"flex", flexDirection:"column",
-      padding:"0 26px", position:"relative", overflowY:"auto",
-    }} className="paper-grain">
-
-      <div style={{paddingTop:56, position:"relative", zIndex:3}}/>
-
-      <div style={{marginTop:14, textAlign:"center", position:"relative", zIndex:3}}>
-        <div className="font-mono tracked" style={{fontSize:9,color:"var(--accent-deep)"}}>— THE WEDDING OF · 결혼식 —</div>
-        <div className="font-display" style={{fontSize:28,marginTop:8,lineHeight:1,color:"var(--ink)"}}>
-          NAYOUNG{" "}
-          <span style={{color:"var(--accent)",fontStyle:"italic",fontFamily:'"Pinyon Script",cursive',fontWeight:400}}>&amp;</span>
-          {" "}DASOL
-        </div>
-        <div style={{marginTop:6,fontFamily:'"Cormorant Garamond",serif',fontSize:14,color:"var(--ink-soft)"}}>이나영 · 김다솔</div>
-        <div style={{marginTop:4,fontFamily:'"Special Elite",monospace',fontSize:10,letterSpacing:"0.2em",color:"var(--ink-mute)"}}>SAT · MAY 16 · 2026</div>
-      </div>
-
-      <div style={{margin:"16px 0 0",height:1,background:"var(--ink)",opacity:0.4,position:"relative",zIndex:3}}/>
-
-      <div style={{marginTop:18,textAlign:"center",position:"relative",zIndex:3}}>
-        <div className="font-mono tracked" style={{fontSize:9,color:"var(--accent-deep)"}}>— TAQUILLA —</div>
-        <div className="font-display" style={{fontSize:20,marginTop:4,lineHeight:1}}>입장권 제출</div>
-        <div style={{fontFamily:'"Cormorant Garamond",serif',fontStyle:"italic",fontSize:13,color:"var(--ink-soft)",marginTop:4}}>닉네임을 입력해주세요</div>
-      </div>
-
-      {/* Ticket */}
-      <div style={{marginTop:16,position:"relative",background:"var(--paper-2)",boxShadow:"0 0 0 1px var(--ink), 0 12px 30px rgba(0,0,0,0.18)",zIndex:3}}>
-        <div style={{height:14,background:"repeating-linear-gradient(90deg, var(--ink) 0 14px, var(--paper-2) 14px 22px)"}}/>
-        <div style={{padding:"16px 22px 0",display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-          <div>
-            <div className="font-mono" style={{fontSize:8,letterSpacing:"0.22em",color:"var(--ink-mute)"}}>ADMIT ONE · 입장권</div>
-            <div className="font-display" style={{fontSize:22,lineHeight:1,marginTop:4,color:"var(--accent-deep)"}}>BOLETO N° 001</div>
-          </div>
-          <div style={{border:"1.5px solid var(--accent-deep)",color:"var(--accent-deep)",padding:"4px 8px",fontFamily:'"Special Elite",monospace',fontSize:9,letterSpacing:"0.2em",transform:"rotate(4deg)"}}>VIP</div>
-        </div>
-        <div style={{padding:"14px 22px",borderTop:"1px dashed var(--rule)",marginTop:14}}>
-          <div className="font-mono" style={{fontSize:8,letterSpacing:"0.18em",color:"var(--ink-mute)"}}>FILM · 영화</div>
-          <div style={{fontFamily:'"Cormorant Garamond",serif',fontStyle:"italic",fontSize:15,color:"var(--ink)",marginTop:2}}>NAYOUNG &amp; DASOL — A LOVE STORY</div>
-        </div>
-        <div style={{padding:"0 22px 22px"}}>
-          <div className="font-mono" style={{fontSize:8,letterSpacing:"0.2em",color:"var(--ink-mute)",marginTop:4}}>NICKNAME · 닉네임</div>
-          <input
-            value={name} onChange={e => setName(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && submit()}
-            placeholder="sky"
-            style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",borderBottom:"1px solid var(--ink-mute)",padding:"8px 0",fontFamily:'"Cormorant Garamond",serif',fontSize:18,color:"var(--ink)",outline:"none"}}
-          />
-          <div style={{fontSize:11,color:"var(--ink-mute)",marginTop:8,fontFamily:'"Cormorant Garamond",serif',fontStyle:"italic"}}>크레딧과 사진에 표시될 이름이에요</div>
-        </div>
-        <div style={{padding:"12px 22px",borderTop:"1px dashed var(--rule)",display:"flex",justifyContent:"space-between",fontFamily:'"Special Elite",monospace',fontSize:8,letterSpacing:"0.18em",color:"var(--ink-mute)"}}>
-          <span>SALA · 01</span><span>FILA · A</span><span>05.16.2026</span>
-        </div>
-        <div style={{height:14,background:"repeating-linear-gradient(90deg, var(--ink) 0 14px, var(--paper-2) 14px 22px)"}}/>
-      </div>
-
-      {/* D-Day */}
-      <div style={{marginTop:14,textAlign:"center",position:"relative",zIndex:3}}>
-        <div style={{display:"inline-flex",alignItems:"baseline",gap:10,padding:"8px 16px",border:"1.5px solid var(--accent-deep)",background:"var(--paper-2)"}}>
-          <div className="font-mono tracked" style={{fontSize:9,color:"var(--accent-deep)"}}>OPENING</div>
-          <div className="font-display" style={{fontSize:22,lineHeight:1,color:"var(--accent-deep)"}}>D{days>0?"−":"+"}{Math.abs(days)}</div>
-          <div className="font-mono tracked" style={{fontSize:9,color:"var(--accent-deep)"}}>{days===0?"TODAY":`${days} DAYS`}</div>
-        </div>
-      </div>
-
-      <button onClick={submit} style={{marginTop:14,width:"100%",padding:"14px",background:"var(--accent-deep)",color:"var(--paper)",border:"none",cursor:"pointer",fontFamily:'"Special Elite",monospace',fontSize:12,letterSpacing:"0.28em",textTransform:"uppercase",position:"relative",zIndex:3}}>
-        SUBMIT · 제출하기
-      </button>
-      <div style={{paddingBottom:24}}/>
-    </div>
-  );
-}
-
 // ─── Hero Poster ─────────────────────────────────────────────
 function HeroPoster() {
   const days = getDDay();
   return (
-    <div style={{height:"100%",background:"var(--ink)",color:"var(--paper)",display:"flex",flexDirection:"column",position:"relative",overflow:"hidden"}}>
-      <div style={{flexShrink:0,padding:"44px 0 0"}}><Sprockets/></div>
-      <div style={{flex:1,position:"relative",margin:"8px 14px 0",background:`url(${HERO_URL}) center/cover, var(--paper-2)`,boxShadow:"0 0 0 1px rgba(255,255,255,0.08), 0 18px 40px rgba(0,0,0,0.5)",overflow:"hidden"}} className="film-grain">
-        <div style={{position:"absolute",top:14,right:14,border:"1.5px solid var(--gold)",color:"var(--gold)",padding:"5px 10px",fontFamily:'"Special Elite",monospace',fontSize:9,letterSpacing:"0.22em",background:"rgba(20,12,8,0.5)",backdropFilter:"blur(4px)",transform:"rotate(3deg)",zIndex:4}}>VIP · INVITED</div>
-        <div style={{position:"absolute",left:0,right:0,bottom:0,padding:"30px 14px 12px",background:"linear-gradient(0deg, rgba(15,8,5,0.78) 0%, rgba(15,8,5,0.4) 60%, transparent 100%)",display:"flex",justifyContent:"space-between",alignItems:"flex-end",zIndex:3}}>
-          <div className="font-mono tracked" style={{fontSize:8,color:"rgba(245,230,200,0.78)"}}>REEL · 01 / 04</div>
-          <div className="font-mono tracked" style={{fontSize:8,color:"rgba(245,230,200,0.78)"}}>SEOUL · 2026</div>
-        </div>
+    <div style={{height:"100%",background:"var(--paper)",color:"var(--ink)",display:"flex",flexDirection:"column",position:"relative",overflowY:"auto"}} className="paper-grain">
+
+      {/* Hero Image */}
+      <div style={{margin:"0",position:"relative",zIndex:3}}>
+        <img src={HERO_URL} alt="" style={{width:"100%",height:"auto",display:"block"}} className="sepia-photo"/>
       </div>
-      <div style={{flexShrink:0,padding:"14px 14px 4px"}}>
-        <div style={{padding:"10px 14px",border:"1px solid var(--gold)",background:"rgba(245,230,200,0.04)",display:"flex",alignItems:"center",gap:12}}>
-          <div className="font-mono tracked" style={{fontSize:8,color:"var(--gold)",opacity:0.75}}>OPENING<br/>D−DAY</div>
-          <div className="font-display" style={{fontSize:30,lineHeight:1,color:"var(--gold)"}}>D{days>0?"−":"+"}{Math.abs(days)}</div>
-          <div style={{flex:1}}/>
-          <div style={{fontFamily:'"Cormorant Garamond",serif',fontStyle:"italic",fontSize:12,color:"rgba(245,230,200,0.7)",textAlign:"right",lineHeight:1.2}}>결혼식까지<br/>{days}일</div>
-        </div>
-      </div>
-      <div style={{flexShrink:0,padding:"10px 0 4px"}}><Sprockets/></div>
     </div>
   );
 }
@@ -288,7 +194,6 @@ function Gallery({ photos, onUpload, onOpenPhoto }) {
   return (
     <div style={{height:"100%",background:"var(--paper)",color:"var(--ink)",display:"flex",flexDirection:"column",position:"relative",overflowY:"auto"}} className="paper-grain">
       <div style={{padding:"50px 22px 0",position:"relative",zIndex:3}}>
-        <div className="font-mono tracked" style={{fontSize:9,color:"var(--accent-deep)",textAlign:"center"}}>— ROLLO III · GALERÍA —</div>
         <div className="font-display" style={{fontSize:30,textAlign:"center",marginTop:4,lineHeight:1}}>La Galería</div>
         <div style={{fontFamily:'"Cormorant Garamond",serif',fontStyle:"italic",textAlign:"center",fontSize:13,color:"var(--ink-soft)",marginTop:4}}>— 두 사람을 담은 장면들 —</div>
       </div>
@@ -308,7 +213,7 @@ function Gallery({ photos, onUpload, onOpenPhoto }) {
           </div>
           <button className="btn-vintage" onClick={onUpload}>SUBIR</button>
         </div>
-        <div style={{marginTop:10,fontFamily:'"Cormorant Garamond",serif',fontStyle:"italic",fontSize:12,color:"var(--ink-soft)",lineHeight:1.4}}>두 사람과 함께 찍은 사진을, 우리만의 장면을 보태주세요.</div>
+        <div style={{marginTop:10,fontFamily:'"Cormorant Garamond",serif',fontStyle:"italic",fontSize:12,color:"var(--ink-soft)",lineHeight:1.4}}>그들과의 추억을 비대면으로 축하해주세요. <br/>어떤 사진이든 좋습니다.</div>
       </div>
 
       <div style={{margin:"12px 18px 0",display:"flex",justifyContent:"space-between",alignItems:"center",position:"relative",zIndex:3}}>
@@ -324,9 +229,8 @@ function Gallery({ photos, onUpload, onOpenPhoto }) {
         <div style={{margin:"18px 12px 0",display:"grid",gridTemplateColumns:"repeat(3, 1fr)",gap:6,position:"relative",zIndex:3}}>
           {photos.map((p, i) => (
             <div key={p.id ?? i} onClick={() => onOpenPhoto && onOpenPhoto(i)} style={{aspectRatio:"1/1",background:`url(${p.url}) center/cover`,position:"relative",cursor:"pointer",boxShadow:"0 0 0 1px rgba(0,0,0,0.1)"}} className="sepia-photo">
-              <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"12px 5px 4px",background:"linear-gradient(180deg, transparent, rgba(0,0,0,0.55))",fontFamily:'"Special Elite",monospace',fontSize:7.5,color:"rgba(255,255,255,0.92)",letterSpacing:"0.08em",display:"flex",justifyContent:"space-between"}}>
-                <span style={{overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{p.by}</span>
-                <span>№{String(i+1).padStart(3,"0")}</span>
+              <div style={{position:"absolute",bottom:0,right:0,padding:"4px 6px",fontFamily:'"Special Elite",monospace',fontSize:7.5,color:"rgba(255,255,255,0.75)",letterSpacing:"0.08em"}}>
+                №{String(i+1).padStart(3,"0")}
               </div>
             </div>
           ))}
@@ -345,21 +249,74 @@ function Gallery({ photos, onUpload, onOpenPhoto }) {
 // ─── Lightbox ─────────────────────────────────────────────────
 function Lightbox({ photos, index, onClose, onPrev, onNext }) {
   const photo = photos[index];
+  const touchStartX = React.useRef(null);
+
+  const onTouchStart = e => { touchStartX.current = e.touches[0].clientX; };
+  const onTouchEnd = e => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(dx) < 40) return;
+    if (dx < 0 && index < photos.length - 1) onNext();
+    if (dx > 0 && index > 0) onPrev();
+  };
+
   if (!photo) return null;
   return (
-    <div className="lightbox-backdrop" onClick={onClose}>
-      <div style={{padding:"50px 18px 14px",display:"flex",justifyContent:"space-between",alignItems:"center",color:"var(--gold)"}} onClick={e=>e.stopPropagation()}>
-        <div className="font-mono tracked" style={{fontSize:9}}>№ {String(index+1).padStart(3,"0")} / {String(photos.length).padStart(3,"0")}</div>
-        <button onClick={onClose} style={{background:"transparent",border:"1px solid rgba(255,255,255,0.4)",color:"rgba(255,255,255,0.85)",padding:"4px 10px",cursor:"pointer",fontFamily:'"Special Elite",monospace',fontSize:9,letterSpacing:"0.2em"}}>CLOSE · 닫기</button>
+    <div className="lightbox-backdrop"
+      onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
+      onClick={onClose}
+    >
+      {/* 이미지 — 전체 채움 */}
+      <img
+        src={photo.url} alt={photo.caption||""}
+        className="sepia-photo"
+        style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"contain"}}
+        onClick={e=>e.stopPropagation()}
+      />
+
+      {/* 상단 오버레이 */}
+      <div style={{position:"absolute",top:0,left:0,right:0,padding:"env(safe-area-inset-top, 14px) 18px 14px",paddingTop:"max(env(safe-area-inset-top), 14px)",display:"flex",justifyContent:"space-between",alignItems:"center",background:"linear-gradient(180deg,rgba(0,0,0,0.5) 0%,transparent 100%)",zIndex:10}} onClick={e=>e.stopPropagation()}>
+        <div className="font-mono tracked" style={{fontSize:9,color:"var(--gold)"}}>
+          {String(index+1).padStart(3,"0")} / {String(photos.length).padStart(3,"0")}
+        </div>
+        <button onClick={onClose} style={{background:"transparent",border:"none",color:"rgba(255,255,255,0.85)",cursor:"pointer",padding:"4px 8px",fontSize:26,lineHeight:1}}>×</button>
       </div>
-      <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 8px",position:"relative"}} onClick={e=>e.stopPropagation()}>
-        <button onClick={onPrev} disabled={index===0} style={{position:"absolute",left:8,top:"50%",transform:"translateY(-50%)",background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.25)",color:"rgba(255,255,255,0.85)",width:36,height:36,cursor:index===0?"default":"pointer",opacity:index===0?0.3:1,fontFamily:"serif",fontSize:18}}>‹</button>
-        <img src={photo.url} alt={photo.caption||""} className="sepia-photo" style={{maxWidth:"100%",maxHeight:"100%",boxShadow:"0 0 0 1px rgba(255,255,255,0.2), 0 12px 40px rgba(0,0,0,0.6)"}}/>
-        <button onClick={onNext} disabled={index===photos.length-1} style={{position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.25)",color:"rgba(255,255,255,0.85)",width:36,height:36,cursor:index===photos.length-1?"default":"pointer",opacity:index===photos.length-1?0.3:1,fontFamily:"serif",fontSize:18}}>›</button>
-      </div>
-      <div style={{padding:"16px 22px 36px",textAlign:"center",color:"rgba(255,255,255,0.92)"}} onClick={e=>e.stopPropagation()}>
-        <div className="font-mono tracked" style={{fontSize:9,color:"var(--gold)"}}>UPLOADED BY · @{photo.by}</div>
-        {photo.caption && <div style={{fontFamily:'"Cormorant Garamond",serif',fontStyle:"italic",fontSize:16,marginTop:8,lineHeight:1.4}}>"{photo.caption}"</div>}
+
+      {/* 좌우 이동 */}
+      {index > 0 && (
+        <button onClick={e=>{e.stopPropagation();onPrev();}} style={{
+          position:"absolute",left:0,top:0,bottom:0,width:"40%",zIndex:10,
+          background:"transparent",border:"none",cursor:"pointer",
+          display:"flex",alignItems:"center",justifyContent:"flex-start",paddingLeft:14,
+          color:"rgba(255,255,255,0.6)",fontSize:36,fontFamily:"serif",
+        }}>‹</button>
+      )}
+      {index < photos.length - 1 && (
+        <button onClick={e=>{e.stopPropagation();onNext();}} style={{
+          position:"absolute",right:0,top:0,bottom:0,width:"40%",zIndex:10,
+          background:"transparent",border:"none",cursor:"pointer",
+          display:"flex",alignItems:"center",justifyContent:"flex-end",paddingRight:14,
+          color:"rgba(255,255,255,0.6)",fontSize:36,fontFamily:"serif",
+        }}>›</button>
+      )}
+
+      {/* 하단 오버레이 — 도트 + 캡션 */}
+      <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"32px 22px max(env(safe-area-inset-bottom), 20px)",background:"linear-gradient(0deg,rgba(0,0,0,0.55) 0%,transparent 100%)",textAlign:"center",zIndex:10}} onClick={e=>e.stopPropagation()}>
+        {photo.caption && (
+          <div style={{fontFamily:'"Cormorant Garamond",serif',fontStyle:"italic",fontSize:14,color:"rgba(255,255,255,0.85)",lineHeight:1.4,marginBottom:10}}>
+            "{photo.caption}"
+          </div>
+        )}
+        <div style={{display:"flex",justifyContent:"center",gap:5}}>
+          {photos.map((_,i) => (
+            <div key={i} style={{
+              width:i===index?16:5,height:5,borderRadius:3,
+              background:i===index?"var(--gold)":"rgba(255,255,255,0.3)",
+              transition:"width 0.2s ease",
+            }}/>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -378,10 +335,9 @@ function Messages({ messages, onLeaveMessage }) {
 
   return (
     <div style={{height:"100%",background:"var(--ink)",color:"var(--paper)",display:"flex",flexDirection:"column",position:"relative",overflow:"hidden"}} className="film-grain">
-      <div style={{padding:"50px 22px 14px",position:"relative",zIndex:5,background:"var(--ink)",borderBottom:"1px solid rgba(255,255,255,0.18)"}}>
-        <div className="font-mono tracked" style={{fontSize:9,color:"var(--gold)",textAlign:"center"}}>— END CREDITS · CRÉDITOS FINALES —</div>
-        <div className="font-display" style={{fontSize:26,textAlign:"center",marginTop:4,lineHeight:1,color:"var(--paper)"}}>축하의 말</div>
-        <div style={{fontFamily:'"Cormorant Garamond",serif',fontStyle:"italic",textAlign:"center",fontSize:13,color:"rgba(255,255,255,0.72)",marginTop:4}}>With special thanks to —</div>
+      <div style={{padding:"50px 22px 16px",position:"relative",zIndex:5,background:"var(--ink)"}}>
+        <div className="font-display" style={{fontSize:30,textAlign:"center",marginTop:4,lineHeight:1,color:"var(--paper)"}}>Los Créditos</div>
+        <div style={{fontFamily:'"Cormorant Garamond",serif',fontStyle:"italic",textAlign:"center",fontSize:13,color:"rgba(255,255,255,0.55)",marginTop:4}}>— Con todo nuestro agradecimiento —</div>
       </div>
 
       <div style={{flex:1,position:"relative",overflow:"hidden",maskImage:"linear-gradient(180deg, transparent 0%, #000 12%, #000 88%, transparent 100%)",WebkitMaskImage:"linear-gradient(180deg, transparent 0%, #000 12%, #000 88%, transparent 100%)"}} onClick={() => { if (highlight!==null){setHighlight(null);setPaused(false);}else setPaused(p=>!p); }}>
@@ -405,23 +361,22 @@ function Messages({ messages, onLeaveMessage }) {
         )}
         {(paused||highlight!==null) && (
           <div style={{position:"absolute",top:12,right:12,background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.4)",color:"var(--paper)",padding:"4px 10px",fontFamily:'"Special Elite",monospace',fontSize:9,letterSpacing:"0.2em",zIndex:6}}>
-            {highlight!==null?"FOCUS · 탭해서 해제":"PAUSED · 탭하면 재생"}
+            {highlight!==null?"FOCUS":"PAUSED"}
           </div>
         )}
       </div>
 
       <div style={{padding:"14px 18px 24px",background:"linear-gradient(0deg, var(--ink) 70%, transparent)",position:"relative",zIndex:5}}>
         <button onClick={onLeaveMessage} style={{width:"100%",fontFamily:'"Special Elite",monospace',fontSize:11,letterSpacing:"0.24em",textTransform:"uppercase",padding:"14px 18px",background:"var(--gold)",color:"var(--ink)",border:"none",cursor:"pointer"}}>
-          ✎ &nbsp; 메시지 남기기 · LEAVE A MESSAGE
+          ✎ &nbsp; LEAVE A MESSAGE
         </button>
-        <div style={{textAlign:"center",marginTop:8,fontFamily:'"Cormorant Garamond",serif',fontStyle:"italic",fontSize:12,color:"rgba(255,255,255,0.55)"}}>메시지를 탭하면 그 메시지만 강조됩니다</div>
       </div>
     </div>
   );
 }
 
 // ─── Upload Sheet ─────────────────────────────────────────────
-function UploadSheet({ onClose, nickname, onSuccess }) {
+function UploadSheet({ onClose, onSuccess }) {
   const [queue, setQueue] = React.useState([]);
   const [uploading, setUploading] = React.useState(false);
   const [error, setError] = React.useState(null);
@@ -431,7 +386,7 @@ function UploadSheet({ onClose, nickname, onSuccess }) {
     const files = Array.from(e.target.files);
     const valid = [], oversized = [];
     files.forEach(f => (f.size <= 5*1024*1024 ? valid : oversized).push(f));
-    if (oversized.length) setError(`${oversized.length}개 파일이 5MB를 초과해 제외됐어요.`);
+    if (oversized.length) setError(`${oversized.length} file(s) exceed 5MB and were removed.`);
     else setError(null);
     setQueue(prev => [...prev, ...valid.map(f => ({ file:f, caption:"", preview:URL.createObjectURL(f) }))]);
     e.target.value = "";
@@ -448,7 +403,6 @@ function UploadSheet({ onClose, nickname, onSuccess }) {
         const fd = new FormData();
         fd.append("photo", item.file);
         fd.append("caption", item.caption);
-        fd.append("nickname", nickname);
         const res = await fetch("/api/photos", {method:"POST", body:fd});
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
@@ -508,10 +462,10 @@ function MessageSheet({ onClose, nickname, onSuccess }) {
   const [text, setText] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState(null);
-  const max = 240;
+  const max = 500;
 
   const handleSend = async () => {
-    if (!nick.trim() || !text.trim()) { setError("닉네임과 메시지를 입력해주세요."); return; }
+    if (!nick.trim() || !text.trim()) { setError("Please enter a name and message."); return; }
     setSubmitting(true); setError(null);
     try {
       await apiFetch("/api/messages", {
@@ -529,14 +483,14 @@ function MessageSheet({ onClose, nickname, onSuccess }) {
         <div style={{width:40,height:4,background:"var(--ink-mute)",opacity:0.3,margin:"0 auto 14px",borderRadius:2}}/>
         <div className="font-mono tracked" style={{fontSize:9,color:"var(--accent-deep)",textAlign:"center"}}>— ADD TO THE CREDITS —</div>
         <div className="font-display" style={{fontSize:24,textAlign:"center",marginTop:4,lineHeight:1}}>Tu Línea</div>
-        <div style={{fontFamily:'"Cormorant Garamond",serif',fontStyle:"italic",textAlign:"center",fontSize:13,color:"var(--ink-soft)",marginTop:4}}>크레딧에 한 줄 남겨주세요</div>
+        <div style={{fontFamily:'"Cormorant Garamond",serif',fontStyle:"italic",textAlign:"center",fontSize:13,color:"var(--ink-soft)",marginTop:4}}>— Leave a line for the two of them —</div>
 
         <div style={{marginTop:16,padding:"16px",background:"var(--paper-2)",border:"1px solid var(--rule)"}}>
-          <div className="font-mono tracked-tight" style={{fontSize:9,color:"var(--ink-mute)",marginBottom:4}}>NICKNAME · 닉네임</div>
+          <div className="font-mono tracked-tight" style={{fontSize:9,color:"var(--ink-mute)",marginBottom:4}}>NICKNAME</div>
           <input value={nick} onChange={e=>setNick(e.target.value)} placeholder="sky" style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",borderBottom:"1px solid var(--ink-mute)",padding:"4px 0",fontFamily:'"Cormorant Garamond",serif',fontSize:17,color:"var(--ink)",outline:"none"}}/>
 
-          <div className="font-mono tracked-tight" style={{fontSize:9,color:"var(--ink-mute)",marginBottom:4,marginTop:14}}>MESSAGE · 메시지</div>
-          <textarea value={text} onChange={e=>setText(e.target.value.slice(0,max))} rows={5} placeholder="두 사람에게 한 줄 남겨주세요..." style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",fontFamily:'"Cormorant Garamond",serif',fontStyle:"italic",fontSize:15,lineHeight:1.5,color:"var(--ink)",outline:"none",resize:"none"}}/>
+          <div className="font-mono tracked-tight" style={{fontSize:9,color:"var(--ink-mute)",marginBottom:4,marginTop:14}}>MESSAGE</div>
+          <textarea value={text} onChange={e=>setText(e.target.value.slice(0,max))} rows={5} placeholder="Write something for Nayoung & Dasol..." style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",fontFamily:'"Cormorant Garamond",serif',fontStyle:"italic",fontSize:15,lineHeight:1.5,color:"var(--ink)",outline:"none",resize:"none"}}/>
           <div style={{display:"flex",justifyContent:"flex-end",marginTop:6}}>
             <div className="font-mono" style={{fontSize:10,color:"var(--ink-mute)"}}>{text.length}/{max}</div>
           </div>
@@ -545,7 +499,7 @@ function MessageSheet({ onClose, nickname, onSuccess }) {
         <ErrorBanner msg={error}/>
 
         <button onClick={handleSend} disabled={submitting} style={{marginTop:16,width:"100%",padding:"14px",background:"var(--accent-deep)",color:"var(--paper)",border:"none",cursor:submitting?"not-allowed":"pointer",opacity:submitting?0.6:1,fontFamily:'"Special Elite",monospace',fontSize:12,letterSpacing:"0.28em",textTransform:"uppercase"}}>
-          {submitting ? "SENDING..." : "SEND · 보내기"}
+          {submitting ? "SENDING..." : "SEND"}
         </button>
         <button onClick={onClose} style={{marginTop:8,width:"100%",padding:"12px",background:"transparent",color:"var(--ink)",border:"1px solid var(--ink-mute)",cursor:"pointer",fontFamily:'"Special Elite",monospace',fontSize:11,letterSpacing:"0.24em",textTransform:"uppercase"}}>CANCEL</button>
       </div>
@@ -555,9 +509,9 @@ function MessageSheet({ onClose, nickname, onSuccess }) {
 
 // ─── Tab Bar ─────────────────────────────────────────────────
 const TABS = [
-  {id:"poster",  label:"INVITE",  icon:"✰"},
-  {id:"gallery", label:"GALLERY", icon:"▢"},
-  {id:"credits", label:"CREDITS", icon:"♪"},
+  {id:"poster",  label:"FUNCIÓN",  icon:"✰"},
+  {id:"gallery", label:"GALERÍA",  icon:"▢"},
+  {id:"credits", label:"CRÉDITOS", icon:"♪"},
 ];
 
 function TabBar({ tab, setTab }) {
@@ -581,8 +535,6 @@ function TabBar({ tab, setTab }) {
 
 // ─── App ─────────────────────────────────────────────────────
 function App() {
-  const [stage, setStage]           = React.useState("auth");
-  const [nickname, setNickname]     = React.useState("");
   const [tab, setTab]               = React.useState("poster");
   const [sheet, setSheet]           = React.useState(null);
   const [muted, setMuted]           = React.useState(true);
@@ -597,20 +549,7 @@ function App() {
     } catch(e) { console.error("fetch failed", e); }
   }, []);
 
-  React.useEffect(() => { if (stage === "app") fetchAll(); }, [stage, fetchAll]);
-
-  const handleSignIn = name => { setNickname(name); setStage("app"); setTab("poster"); };
-
-  if (stage === "auth") {
-    return (
-      <div className="app-container">
-        <div style={{flex:1,overflow:"hidden",position:"relative"}}>
-          <AuthScreen onSignIn={handleSignIn}/>
-          <MuteButton muted={muted} onToggle={()=>setMuted(m=>!m)}/>
-        </div>
-      </div>
-    );
-  }
+  React.useEffect(() => { fetchAll(); }, [fetchAll]);
 
   return (
     <div className="app-container">
@@ -620,10 +559,10 @@ function App() {
         {tab==="credits" && <Messages messages={messages} onLeaveMessage={()=>setSheet("message")}/>}
 
         {sheet==="upload" && (
-          <UploadSheet onClose={()=>setSheet(null)} nickname={nickname} onSuccess={fetchAll}/>
+          <UploadSheet onClose={()=>setSheet(null)} onSuccess={fetchAll}/>
         )}
         {sheet==="message" && (
-          <MessageSheet onClose={()=>setSheet(null)} nickname={nickname} onSuccess={fetchAll}/>
+          <MessageSheet onClose={()=>setSheet(null)} nickname="" onSuccess={fetchAll}/>
         )}
 
         {lightboxIdx!==null && (
@@ -637,7 +576,7 @@ function App() {
 
         <MuteButton muted={muted} onToggle={()=>setMuted(m=>!m)}/>
       </div>
-      <TabBar tab={tab} setTab={setTab}/>
+      {lightboxIdx === null && <TabBar tab={tab} setTab={t => { setTab(t); setLightboxIdx(null); setSheet(null); }}/>}
     </div>
   );
 }

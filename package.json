@@ -7,8 +7,10 @@
     "dev": "node --watch server.js"
   },
   "dependencies": {
-    "better-sqlite3": "^9.6.0",
+    "better-sqlite3": "^12.9.0",
     "express": "^4.19.0",
+    "express-rate-limit": "^8.4.1",
+    "helmet": "^8.1.0",
     "multer": "^1.4.5-lts.1"
   }
 }
