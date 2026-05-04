@@ -221,9 +221,9 @@ function Gallery({ photos, onUpload, onOpenPhoto }) {
       </div>
 
       {/* 하단 고정: 업로드 영역 */}
-      <div style={{flexShrink:0,padding:"12px 18px 24px",background:"var(--paper)",borderTop:"1px solid var(--rule)",position:"relative",zIndex:5}}>
+      <div style={{flexShrink:0,margin:"0 18px",padding:"16px",border:"1px dashed var(--ink-mute)",background:"var(--paper-2)",position:"relative",zIndex:5,marginBottom:16}}>
         <div style={{display:"flex",gap:14,alignItems:"center"}}>
-          <div style={{width:42,height:42,background:"var(--ink)",color:"var(--paper)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+          <div style={{width:46,height:46,background:"var(--ink)",color:"var(--paper)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
             <svg width="22" height="20" viewBox="0 0 22 20" fill="none">
               <rect x="1" y="4" width="20" height="14" stroke="currentColor" strokeWidth="1.4"/>
               <circle cx="11" cy="11" r="4" stroke="currentColor" strokeWidth="1.4"/>
@@ -231,11 +231,12 @@ function Gallery({ photos, onUpload, onOpenPhoto }) {
             </svg>
           </div>
           <div style={{flex:1,minWidth:0}}>
-            <div className="font-display" style={{fontSize:15,lineHeight:1.1}}>사진 올리기</div>
-            <div className="font-mono" style={{fontSize:9,color:"var(--ink-mute)",letterSpacing:"0.12em",marginTop:2}}>MÁX · 5MB POR FOTO</div>
+            <div className="font-display" style={{fontSize:16,lineHeight:1.1}}>Enviar una Foto</div>
+            <div className="font-mono" style={{fontSize:9,color:"var(--ink-mute)",letterSpacing:"0.12em",marginTop:3}}>MÁX · 5MB POR FOTO</div>
           </div>
           <button className="btn-vintage" onClick={onUpload}>SUBIR</button>
         </div>
+        <div style={{marginTop:10,fontStyle:"italic",fontSize:12,color:"var(--ink-soft)",lineHeight:1.4}}>그들과의 추억을 비대면으로 축하해주세요. <br/>어떤 사진이든 좋습니다.</div>
       </div>
     </div>
   );
