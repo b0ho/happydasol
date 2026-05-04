@@ -309,12 +309,38 @@ function Lightbox({ photos, index, onClose, onPrev, onNext }) {
 function Messages({ messages, onLeaveMessage }) {
   const [paused, setPaused] = React.useState(false);
   const [highlight, setHighlight] = React.useState(null);
+  const [fast, setFast] = React.useState(false);
+  const [rollKey, setRollKey] = React.useState(0);
 
   const tap = (i, e) => {
     e.stopPropagation();
     if (highlight === i) { setHighlight(null); setPaused(false); }
     else { setHighlight(i); setPaused(true); }
   };
+
+  const replay = e => {
+    e.stopPropagation();
+    setHighlight(null);
+    setPaused(false);
+    setRollKey(k => k + 1);
+  };
+
+  const toggleFast = e => {
+    e.stopPropagation();
+    setFast(f => !f);
+  };
+
+  const btnStyle = active => ({
+    fontFamily:'"Special Elite",monospace',
+    fontSize:9,
+    letterSpacing:"0.18em",
+    textTransform:"uppercase",
+    padding:"6px 12px",
+    background: active ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.08)",
+    color:"var(--paper)",
+    border:"1px solid rgba(255,255,255,0.3)",
+    cursor:"pointer",
+  });
 
   return (
     <div style={{height:"100%",background:"var(--ink)",color:"var(--paper)",display:"flex",flexDirection:"column",position:"relative",overflow:"hidden"}} className="film-grain">
@@ -329,7 +355,7 @@ function Messages({ messages, onLeaveMessage }) {
             <div style={{fontStyle:"italic",fontSize:16,color:"rgba(255,255,255,0.4)",textAlign:"center"}}>아직 메시지가 없어요<br/>첫 번째 축하 메시지를 남겨주세요</div>
           </div>
         ) : (
-          <div className={`credits-roll${paused?" paused":""}`} style={{position:"absolute",left:0,right:0,padding:"0 26px",textAlign:"center"}}>
+          <div key={rollKey} className={`credits-roll${paused?" paused":""}`} style={{position:"absolute",left:0,right:0,padding:"0 26px",textAlign:"center",animationDuration:fast?"15s":"60s"}}>
             {messages.map((m, i) => {
               const cls = highlight===null?"":highlight===i?"highlight":"dim";
               return (
@@ -349,7 +375,11 @@ function Messages({ messages, onLeaveMessage }) {
         )}
       </div>
 
-      <div style={{padding:"14px 18px 24px",background:"linear-gradient(0deg, var(--ink) 70%, transparent)",position:"relative",zIndex:5}}>
+      <div style={{padding:"10px 18px 4px",background:"linear-gradient(0deg, var(--ink) 70%, transparent)",position:"relative",zIndex:5,display:"flex",gap:8,justifyContent:"center"}}>
+        <button onClick={replay} style={btnStyle(false)}>↺ &nbsp;처음부터</button>
+        <button onClick={toggleFast} style={btnStyle(fast)}>▶▶ &nbsp;빨리감기{fast?" ON":" OFF"}</button>
+      </div>
+      <div style={{padding:"10px 18px 24px",background:"var(--ink)",position:"relative",zIndex:5}}>
         <button onClick={onLeaveMessage} style={{width:"100%",fontFamily:'"Special Elite",monospace',fontSize:11,letterSpacing:"0.24em",textTransform:"uppercase",padding:"14px 18px",background:"var(--gold)",color:"var(--ink)",border:"none",cursor:"pointer"}}>
           ✎ &nbsp; LEAVE A MESSAGE
         </button>
