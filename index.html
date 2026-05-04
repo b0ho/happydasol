@@ -314,6 +314,14 @@ function Messages({ messages, onLeaveMessage }) {
   const rafRef       = React.useRef();
   const stateRef     = React.useRef({ paused: false, fast: false, highlight: null });
 
+  // 메시지 수가 적을 때 한 세트가 화면을 채울 수 있도록 충분히 반복
+  // 약 8개 이상의 아이템이 되도록 복제 횟수 결정 (각 아이템 ~150px, 8개 ≈ 1200px > 일반 컨테이너 높이)
+  const repeatCount = messages.length > 0
+    ? Math.max(2, Math.ceil(8 / messages.length))
+    : 2;
+  const repeatCountRef = React.useRef(repeatCount);
+  repeatCountRef.current = repeatCount;
+
   React.useEffect(() => { stateRef.current = { paused, fast, highlight }; }, [paused, fast, highlight]);
 
   React.useEffect(() => {
@@ -322,7 +330,7 @@ function Messages({ messages, onLeaveMessage }) {
     if (!container || !roll || messages.length === 0) return;
 
     const containerH = container.clientHeight;
-    const singleH    = roll.scrollHeight / 2;
+    const singleH    = roll.scrollHeight / repeatCountRef.current;
 
     if (posRef.current === null) posRef.current = containerH / 2;
 
@@ -386,16 +394,23 @@ function Messages({ messages, onLeaveMessage }) {
           </div>
         ) : (
           <div ref={rollRef} key={rollKey} style={{position:"absolute",left:0,right:0,padding:"0 26px",textAlign:"center",willChange:"transform"}}>
-            {[...messages, ...messages].map((m, i) => {
-              const orig = i % messages.length;
-              const cls  = highlight===null?"":highlight===orig?"highlight":"dim";
-              return (
-                <div key={i} className={`credit-msg ${cls}`} onClick={e=>tap(orig,e)} style={{marginBottom:38,cursor:"pointer"}}>
-                  <div className="font-display" style={{fontSize:19,lineHeight:1.1,color:"var(--gold)",marginBottom:10}}>{m.nickname}</div>
-                  <div style={{fontStyle:"italic",fontSize:14,lineHeight:1.55,color:"rgba(255,255,255,0.85)"}}>"{m.text}"</div>
+            {Array.from({length: repeatCount}, (_, copyIdx) => (
+              <React.Fragment key={copyIdx}>
+                {messages.map((m, msgIdx) => {
+                  const cls = highlight===null?"":highlight===msgIdx?"highlight":"dim";
+                  return (
+                    <div key={copyIdx * messages.length + msgIdx} className={`credit-msg ${cls}`} onClick={e=>tap(msgIdx,e)} style={{marginBottom:38,cursor:"pointer"}}>
+                      <div className="font-display" style={{fontSize:19,lineHeight:1.1,color:"var(--gold)",marginBottom:10}}>{m.nickname}</div>
+                      <div style={{fontStyle:"italic",fontSize:14,lineHeight:1.55,color:"rgba(255,255,255,0.85)"}}>"{m.text}"</div>
+                    </div>
+                  );
+                })}
+                <div style={{marginTop:10,marginBottom:10}}>
+                  <div className="font-display" style={{fontSize:26,color:"var(--gold)",letterSpacing:"0.14em",opacity:0.75}}>— FIN —</div>
                 </div>
-              );
-            })}
+                <div style={{height:"50vh"}}/>
+              </React.Fragment>
+            ))}
           </div>
         )}
         {(paused||highlight!==null) && (
