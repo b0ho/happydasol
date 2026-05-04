@@ -96,6 +96,30 @@ app.get("/favicon.ico", (_req, res) => res.status(204).end());
 
 app.use(express.json({ limit: "10kb" }));
 
+const adminAuth = (req, res, next) => {
+  if (req.headers["x-admin-token"] !== process.env.ADMIN_TOKEN)
+    return res.status(403).json({ error: "Forbidden" });
+  next();
+};
+app.get("/api/admin/messages", adminAuth, (_req, res) => {
+  res.json(db.prepare("SELECT id, nickname, text, created_at FROM messages ORDER BY id").all());
+});
+app.delete("/api/admin/messages/:id", adminAuth, (req, res) => {
+  db.prepare("DELETE FROM messages WHERE id = ?").run(req.params.id);
+  res.json({ ok: true });
+});
+app.get("/api/admin/photos", adminAuth, (_req, res) => {
+  res.json(db.prepare("SELECT id, nickname, caption, filename, created_at FROM photos ORDER BY id").all());
+});
+app.delete("/api/admin/photos/:id", adminAuth, (req, res) => {
+  const photo = db.prepare("SELECT filename FROM photos WHERE id = ?").get(req.params.id);
+  if (photo) {
+    try { fs.unlinkSync(path.join(UPLOADS_DIR, photo.filename)); } catch(_) {}
+    db.prepare("DELETE FROM photos WHERE id = ?").run(req.params.id);
+  }
+  res.json({ ok: true });
+});
+
 app.get("/api/messages", (_req, res) => {
   res.json(db.prepare("SELECT * FROM messages ORDER BY created_at ASC").all());
 });
