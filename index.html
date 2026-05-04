@@ -332,7 +332,7 @@ function Messages({ messages, onLeaveMessage }) {
       const shouldMove = !paused && highlight === null;
       if (shouldMove) {
         if (lastTs !== null) {
-          const speed = (singleH / (fast ? 15 : 60));
+          const speed = containerH / (fast ? 2 : 8);
           posRef.current -= speed * ((ts - lastTs) / 1000);
           if (posRef.current < (containerH / 2) - singleH) posRef.current += singleH;
           roll.style.transform = `translateY(${posRef.current}px)`;
