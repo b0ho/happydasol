@@ -184,44 +184,13 @@ function HeroPoster() {
 // ─── Gallery ─────────────────────────────────────────────────
 function Gallery({ photos, onUpload, onOpenPhoto }) {
   return (
-    <div style={{height:"100%",background:"var(--paper)",color:"var(--ink)",display:"flex",flexDirection:"column",position:"relative",overflow:"hidden"}} className="paper-grain">
-
-      {/* 스크롤 영역: 헤더 + 그리드 */}
-      <div style={{flex:1,overflowY:"auto",position:"relative"}}>
-        <div style={{padding:"50px 22px 0",position:"relative",zIndex:3}}>
-          <div className="font-display" style={{fontSize:30,textAlign:"center",marginTop:4,lineHeight:1}}>La Galería</div>
-          <div style={{fontStyle:"italic",textAlign:"center",fontSize:13,color:"var(--ink-soft)",marginTop:4}}>— 두 사람을 담은 장면들 —</div>
-        </div>
-
-        <div style={{margin:"12px 18px 0",display:"flex",justifyContent:"space-between",alignItems:"center",position:"relative",zIndex:3}}>
-          <MonoLabel>GALERÍA · {photos.length} TOMAS</MonoLabel>
-        </div>
-        <div style={{margin:"6px 18px 0",height:2,background:"var(--rule)",position:"relative",zIndex:3}}/>
-
-        {photos.length === 0 ? (
-          <div style={{display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:12,padding:"60px 0",position:"relative",zIndex:3}}>
-            <div style={{fontStyle:"italic",fontSize:16,color:"var(--ink-mute)",textAlign:"center"}}>아직 사진이 없어요<br/>첫 번째 장면을 남겨주세요</div>
-          </div>
-        ) : (
-          <div style={{margin:"18px 12px 0",display:"grid",gridTemplateColumns:"repeat(3, 1fr)",gap:6,position:"relative",zIndex:3}}>
-            {photos.map((p, i) => (
-              <div key={p.id ?? i} onClick={() => onOpenPhoto && onOpenPhoto(i)} style={{aspectRatio:"1/1",background:`url(${p.url}) center/cover`,position:"relative",cursor:"pointer",boxShadow:"0 0 0 1px rgba(0,0,0,0.1)"}} className="sepia-photo">
-                <div style={{position:"absolute",bottom:0,right:0,padding:"4px 6px",fontFamily:'"Special Elite",monospace',fontSize:7.5,color:"rgba(255,255,255,0.75)",letterSpacing:"0.08em"}}>
-                  №{String(i+1).padStart(3,"0")}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
+    <div style={{height:"100%",background:"var(--paper)",color:"var(--ink)",display:"flex",flexDirection:"column",position:"relative",overflowY:"auto"}} className="paper-grain">
+      <div style={{padding:"50px 22px 0",position:"relative",zIndex:3}}>
+        <div className="font-display" style={{fontSize:30,textAlign:"center",marginTop:4,lineHeight:1}}>La Galería</div>
+        <div style={{fontStyle:"italic",textAlign:"center",fontSize:13,color:"var(--ink-soft)",marginTop:4}}>— 두 사람을 담은 장면들 —</div>
       </div>
 
-      {/* 하단 고정: 업로드 영역 */}
-      <div style={{textAlign:"center",padding:"14px 22px 10px",position:"relative",zIndex:5}}>
-        <div style={{height:1,background:"var(--ink)",opacity:0.4,marginBottom:10}}/>
-        <div className="font-mono tracked" style={{fontSize:8,color:"var(--ink-mute)"}}>ENVIADAS POR LOS AMIGOS QUERIDOS</div>
-      </div>
-      <div style={{flexShrink:0,margin:"0 18px 20px",padding:"16px",border:"1px dashed var(--ink-mute)",background:"var(--paper-2)",position:"relative",zIndex:5}}>
+      <div style={{margin:"20px 18px 0",padding:"16px",border:"1px dashed var(--ink-mute)",background:"var(--paper-2)",position:"relative",zIndex:3}}>
         <div style={{display:"flex",gap:14,alignItems:"center"}}>
           <div style={{width:46,height:46,background:"var(--ink)",color:"var(--paper)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
             <svg width="22" height="20" viewBox="0 0 22 20" fill="none">
@@ -236,7 +205,34 @@ function Gallery({ photos, onUpload, onOpenPhoto }) {
           </div>
           <button className="btn-vintage" onClick={onUpload}>SUBIR</button>
         </div>
-        <div style={{marginTop:10,fontStyle:"italic",fontSize:12,color:"var(--ink-soft)",lineHeight:1.4}}>그들과의 추억을 비대면으로 축하해주세요. <br/>어떤 사진이든 좋습니다.</div>
+        <div style={{marginTop:10,fontStyle:"italic",fontSize:12,color:"var(--ink-soft)",lineHeight:1.4}}>저희와의 추억을 비대면으로 축하해주세요. <br/>어떤 사진이든 좋습니다.</div>
+      </div>
+
+      <div style={{margin:"12px 18px 0",display:"flex",justifyContent:"space-between",alignItems:"center",position:"relative",zIndex:3}}>
+        <MonoLabel>GALERÍA · {photos.length} TOMAS</MonoLabel>
+      </div>
+      <div style={{margin:"6px 18px 0",height:2,background:"var(--rule)",position:"relative",zIndex:3}}/>
+
+      {photos.length === 0 ? (
+        <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:12,padding:"40px 0",position:"relative",zIndex:3}}>
+          <div style={{fontStyle:"italic",fontSize:16,color:"var(--ink-mute)",textAlign:"center"}}>아직 사진이 없어요<br/>첫 번째 장면을 남겨주세요</div>
+        </div>
+      ) : (
+        <div style={{margin:"18px 12px 0",display:"grid",gridTemplateColumns:"repeat(3, 1fr)",gap:6,position:"relative",zIndex:3}}>
+          {photos.map((p, i) => (
+            <div key={p.id ?? i} onClick={() => onOpenPhoto && onOpenPhoto(i)} style={{aspectRatio:"1/1",background:`url(${p.url}) center/cover`,position:"relative",cursor:"pointer",boxShadow:"0 0 0 1px rgba(0,0,0,0.1)"}} className="sepia-photo">
+              <div style={{position:"absolute",bottom:0,right:0,padding:"4px 6px",fontFamily:'"Special Elite",monospace',fontSize:7.5,color:"rgba(255,255,255,0.75)",letterSpacing:"0.08em"}}>
+                №{String(i+1).padStart(3,"0")}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{height:36}}/>
+      <div style={{margin:"10px 22px 24px",textAlign:"center",position:"relative",zIndex:3}}>
+        <div style={{height:1,background:"var(--ink)",opacity:0.4,marginBottom:8}}/>
+        <div className="font-mono tracked" style={{fontSize:8,color:"var(--ink-mute)"}}>ENVIADAS POR LOS AMIGOS QUERIDOS</div>
       </div>
     </div>
   );
