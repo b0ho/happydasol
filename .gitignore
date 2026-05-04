@@ -3,3 +3,8 @@ wedding.db
 uploads/
 *.db-journal
 .DS_Store
+screenshots/
+.playwright-mcp/
+*.png
+*.jpeg
+*.jpg

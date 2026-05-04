@@ -64,7 +64,7 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     const ok = /^image\/(jpeg|png|webp|heic|heif)$/.test(file.mimetype);
-    cb(ok ? null : new Error("이미지 파일만 업로드할 수 있습니다."), ok);
+    cb(ok ? null : new Error("Only image files are allowed (JPG, PNG, WEBP, HEIC)."), ok);
   },
 });
 
@@ -107,6 +107,7 @@ app.use("/uploads", express.static("uploads"));               // 업로드된 �
 app.get("/music/bgm.mp3", (_req, res) => {
   res.sendFile(path.resolve(__dirname, "Consejo Nupcial.mp3"));
 });
+app.get("/favicon.ico", (_req, res) => res.status(204).end());
 
 // ── Middleware ────────────────────────────────────────────────
 app.use(express.json({ limit: "10kb" }));
