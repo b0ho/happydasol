@@ -104,12 +104,26 @@ const adminAuth = (req, res, next) => {
 app.get("/api/admin/messages", adminAuth, (_req, res) => {
   res.json(db.prepare("SELECT id, nickname, text, created_at FROM messages ORDER BY id").all());
 });
+app.patch("/api/admin/messages/:id", adminAuth, (req, res) => {
+  const { nickname, text } = req.body ?? {};
+  if (!nickname?.trim() && !text?.trim())
+    return res.status(400).json({ error: "nickname or text required." });
+  if (nickname?.trim()) db.prepare("UPDATE messages SET nickname = ? WHERE id = ?").run(nickname.trim(), req.params.id);
+  if (text?.trim()) db.prepare("UPDATE messages SET text = ? WHERE id = ?").run(text.trim(), req.params.id);
+  res.json(db.prepare("SELECT * FROM messages WHERE id = ?").get(req.params.id));
+});
 app.delete("/api/admin/messages/:id", adminAuth, (req, res) => {
   db.prepare("DELETE FROM messages WHERE id = ?").run(req.params.id);
   res.json({ ok: true });
 });
 app.get("/api/admin/photos", adminAuth, (_req, res) => {
   res.json(db.prepare("SELECT id, nickname, caption, filename, created_at FROM photos ORDER BY id").all());
+});
+app.patch("/api/admin/photos/:id", adminAuth, (req, res) => {
+  const { caption, nickname } = req.body ?? {};
+  if (caption !== undefined) db.prepare("UPDATE photos SET caption = ? WHERE id = ?").run(caption.trim(), req.params.id);
+  if (nickname?.trim()) db.prepare("UPDATE photos SET nickname = ? WHERE id = ?").run(nickname.trim(), req.params.id);
+  res.json(db.prepare("SELECT * FROM photos WHERE id = ?").get(req.params.id));
 });
 app.delete("/api/admin/photos/:id", adminAuth, (req, res) => {
   const photo = db.prepare("SELECT filename FROM photos WHERE id = ?").get(req.params.id);
