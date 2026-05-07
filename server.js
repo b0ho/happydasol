@@ -94,6 +94,143 @@ app.use("/uploads", express.static(UPLOADS_DIR));
 app.get("/music/bgm.mp3", (_req, res) => res.sendFile(path.resolve(__dirname, "assets/bgm.mp3")));
 app.get("/favicon.ico", (_req, res) => res.status(204).end());
 
+const OPENAPI_SPEC = {
+  openapi: "3.0.0",
+  info: { title: "happydasol API", version: "1.0.0" },
+  components: {
+    securitySchemes: {
+      adminToken: { type: "apiKey", in: "header", name: "x-admin-token" },
+    },
+  },
+  paths: {
+    "/api/messages": {
+      get: {
+        summary: "메시지 목록",
+        responses: { 200: { description: "성공" } },
+      },
+      post: {
+        summary: "메시지 작성",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["nickname", "text"],
+                properties: {
+                  nickname: { type: "string", maxLength: 40 },
+                  text: { type: "string", maxLength: 500 },
+                },
+              },
+            },
+          },
+        },
+        responses: { 200: { description: "성공" } },
+      },
+    },
+    "/api/admin/messages": {
+      get: {
+        summary: "[관리자] 메시지 전체 조회",
+        security: [{ adminToken: [] }],
+        responses: { 200: { description: "성공" }, 403: { description: "인증 실패" } },
+      },
+    },
+    "/api/admin/messages/{id}": {
+      patch: {
+        summary: "[관리자] 메시지 수정",
+        security: [{ adminToken: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "integer" } }],
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  nickname: { type: "string" },
+                  text: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: { 200: { description: "성공" }, 403: { description: "인증 실패" } },
+      },
+      delete: {
+        summary: "[관리자] 메시지 삭제",
+        security: [{ adminToken: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "integer" } }],
+        responses: { 200: { description: "성공" }, 403: { description: "인증 실패" } },
+      },
+    },
+    "/api/admin/photos": {
+      get: {
+        summary: "[관리자] 사진 전체 조회",
+        security: [{ adminToken: [] }],
+        responses: { 200: { description: "성공" }, 403: { description: "인증 실패" } },
+      },
+    },
+    "/api/admin/photos/{id}": {
+      patch: {
+        summary: "[관리자] 사진 정보 수정",
+        security: [{ adminToken: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "integer" } }],
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  caption: { type: "string" },
+                  nickname: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: { 200: { description: "성공" }, 403: { description: "인증 실패" } },
+      },
+      delete: {
+        summary: "[관리자] 사진 삭제",
+        security: [{ adminToken: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "integer" } }],
+        responses: { 200: { description: "성공" }, 403: { description: "인증 실패" } },
+      },
+    },
+    "/api/photos": {
+      get: {
+        summary: "사진 목록",
+        responses: { 200: { description: "성공" } },
+      },
+    },
+  },
+};
+
+app.get("/api-docs/spec.json", (_req, res) => res.json(OPENAPI_SPEC));
+app.get("/api-docs", (_req, res) => {
+  res.send(`<!DOCTYPE html>
+<html>
+<head>
+  <title>happydasol API Docs</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+</head>
+<body>
+<div id="swagger-ui"></div>
+<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+<script>
+  SwaggerUIBundle({
+    url: "/api-docs/spec.json",
+    dom_id: "#swagger-ui",
+    presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+    layout: "BaseLayout",
+    persistAuthorization: true,
+  });
+</script>
+</body>
+</html>`);
+});
+
 app.use(express.json({ limit: "10kb" }));
 
 const adminAuth = (req, res, next) => {
