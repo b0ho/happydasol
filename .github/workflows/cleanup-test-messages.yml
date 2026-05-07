@@ -1,0 +1,81 @@
+name: Delete test-nickname messages
+
+on:
+  workflow_dispatch:
+    inputs:
+      admin_token:
+        description: 'ADMIN_TOKEN'
+        required: true
+        type: string
+      dry_run:
+        description: 'Dry run (목록만 확인, 실제 삭제 안 함)'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch and delete test messages
+        env:
+          ADMIN_TOKEN: ${{ inputs.admin_token }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          BASE_URL: https://happydasol.kro.kr
+        run: |
+          echo "=== 전체 메시지 조회 ==="
+          MESSAGES=$(curl -sf -H "x-admin-token: $ADMIN_TOKEN" "$BASE_URL/api/admin/messages")
+
+          echo "$MESSAGES" | python3 -c "
+import json, sys, os
+
+messages = json.load(sys.stdin)
+test_ids = []
+
+print(f'총 {len(messages)}개 메시지\n')
+print('{:<6} {:<20} {}'.format('ID', 'Nickname', 'Text'))
+print('-' * 70)
+
+for m in messages:
+    nick = m['nickname']
+    is_test = 'test' in nick.lower() or '테스트' in nick
+    marker = ' <<< 삭제 대상' if is_test else ''
+    print('{:<6} {:<20} {}{}'.format(m['id'], nick, m['text'][:35], marker))
+    if is_test:
+        test_ids.append(m['id'])
+
+print()
+if not test_ids:
+    print('test 닉네임 메시지 없음.')
+else:
+    print(f'삭제 대상 {len(test_ids)}건: ID {test_ids}')
+
+with open('/tmp/test_ids.txt', 'w') as f:
+    f.write(' '.join(map(str, test_ids)))
+"
+
+          TEST_IDS=$(cat /tmp/test_ids.txt 2>/dev/null || echo '')
+
+          if [[ -z "$TEST_IDS" ]]; then
+            echo "삭제할 test 닉네임 메시지가 없습니다."
+            exit 0
+          fi
+
+          if [[ "$DRY_RUN" == "true" ]]; then
+            echo ""
+            echo "[Dry run] 실제 삭제하려면 dry_run=false 로 다시 실행하세요."
+            exit 0
+          fi
+
+          echo ""
+          echo "=== 삭제 중 ==="
+          for ID in $TEST_IDS; do
+            RESULT=$(curl -sf -X DELETE -H "x-admin-token: $ADMIN_TOKEN" "$BASE_URL/api/admin/messages/$ID")
+            echo "ID $ID 삭제 완료: $RESULT"
+          done
+
+          echo ""
+          echo "완료."
